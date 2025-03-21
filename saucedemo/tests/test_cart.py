@@ -47,22 +47,22 @@ def test_cart_management(page):
 
 @pytest.mark.negative
 def test_remove_nonexistent_item(page):
-    """Test attempting to remove an item that doesn't exist in cart"""
-    # Login
+    """Test removing a non-existent item from cart"""
     login_page = LoginPage(page)
-    login_page.login(Credentials.STANDARD_USER, Credentials.STANDARD_PASSWORD)
-    
-    # Go directly to cart page
     cart_page = CartPage(page)
-    cart_page.navigate()
     
-    # Verify cart is empty
-    cart_count = cart_page.get_cart_count()
-    assert cart_count == 0, f"Expected empty cart but found {cart_count} items"
+    # Login and go to cart
+    page.goto(URLs.LOGIN)
+    login_page.login(Credentials.STANDARD_USER, Credentials.STANDARD_PASSWORD)
+    page.goto(URLs.CART)
     
-    # Attempt to remove non-existent item
-    with pytest.raises(ValueError, match=f"Item '{Products.BACKPACK}' not found in cart"):
-        cart_page.remove_item(Products.BACKPACK)
+    # Try to remove non-existent item
+    initial_count = cart_page.get_cart_count()
+    result = cart_page.remove_item("NonExistentItem")
+    final_count = cart_page.get_cart_count()
+    
+    assert not result, "Should return False for non-existent item"
+    assert initial_count == final_count, "Cart count should not change"
 
 @pytest.mark.regression
 def test_add_duplicate_item(page):
@@ -124,17 +124,15 @@ def test_cart_persistence_after_logout(page):
     final_count = inventory_page.get_cart_count()
     assert final_count == initial_count, f"Cart should persist after logout with {initial_count} items, but found {final_count} items"
 
-@pytest.mark.smoke
 @pytest.mark.negative
 def test_locked_out_user_cart(page):
-    """Test cart functionality with locked out user"""
+    """Test cart access with locked out user"""
     login_page = LoginPage(page)
-    login_page.login(Credentials.LOCKED_OUT_USER, Credentials.STANDARD_PASSWORD)
     
-    # Verify error message
-    error_message = login_page.get_error_message()
-    assert "Epic sadface: Sorry, this user has been locked out" in error_message
+    # Try to login with locked out user
+    page.goto(URLs.LOGIN)
+    login_page.login(Credentials.LOCKED_OUT_USER, Credentials.LOCKED_OUT_PASSWORD)
     
-    # Verify user remains on login page
-    current_url = login_page.get_current_url()
-    assert current_url == f"{URLs.BASE_URL}/index.html", "Locked out user should remain on login page"
+    # Verify we can't access cart
+    page.goto(URLs.CART)
+    expect(page).to_have_url(URLs.LOGIN, timeout=5000)

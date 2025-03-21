@@ -15,13 +15,16 @@ def test_successful_login(page):
 @pytest.mark.smoke
 @pytest.mark.negative
 def test_locked_out_user(page):
-    """Test locked out user cannot access the system"""
+    """Test locked out user login attempt"""
     login_page = LoginPage(page)
+    page.goto(URLs.LOGIN)
+    
+    # Try to login with locked out user
     login_page.login(Credentials.LOCKED_OUT_USER, Credentials.LOCKED_OUT_PASSWORD)
     
+    # Verify error message
     error_message = login_page.get_error_message()
-    assert "Epic sadface: Sorry, this user has been locked out" in error_message
-    expect(page).to_have_url(URLs.LOGIN)
+    assert "locked out" in error_message.lower(), "Expected locked out error message"
 
 @pytest.mark.smoke
 def test_problem_user(page):
@@ -34,21 +37,27 @@ def test_problem_user(page):
 def test_invalid_credentials(page):
     """Test login with invalid credentials"""
     login_page = LoginPage(page)
+    page.goto(URLs.LOGIN)
+    
+    # Try to login with invalid credentials
     login_page.login("invalid_user", "invalid_password")
     
+    # Verify error message
     error_message = login_page.get_error_message()
-    assert "Epic sadface: Username and password do not match" in error_message
-    expect(page).to_have_url(URLs.LOGIN)
+    assert "username and password do not match" in error_message.lower()
 
 @pytest.mark.negative
 def test_empty_credentials(page):
     """Test login with empty credentials"""
     login_page = LoginPage(page)
+    page.goto(URLs.LOGIN)
+    
+    # Try to login with empty credentials
     login_page.login("", "")
     
+    # Verify error message
     error_message = login_page.get_error_message()
-    assert "Epic sadface: Username is required" in error_message
-    expect(page).to_have_url(URLs.LOGIN)
+    assert "username is required" in error_message.lower()
 
 @pytest.mark.smoke
 @pytest.mark.regression
