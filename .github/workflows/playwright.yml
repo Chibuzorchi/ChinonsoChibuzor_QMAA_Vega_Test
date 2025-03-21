@@ -23,51 +23,78 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest-xdist pytest-reportlog
+        pip install pytest-xdist pytest-reportlog pytest-html
         playwright install --with-deps chromium
 
-    - name: Create directories
+    - name: Create test results directory
       run: |
         mkdir -p test-results
-        mkdir -p allure-results
-        mkdir -p playwright-report
         mkdir -p screenshots
 
-    - name: Run Tests
+    - name: Run Smoke Tests
+      if: success() || failure()
       run: |
-        # Run smoke tests
-        python -m pytest saucedemo/tests -v -m smoke --junitxml=test-results/smoke-results.xml --reportlog=test-results/smoke.log
-        # Run regression tests
-        python -m pytest saucedemo/tests -v -m regression --junitxml=test-results/regression-results.xml --reportlog=test-results/regression.log
-        # Run security tests
-        python -m pytest saucedemo/tests -v -m negative --junitxml=test-results/security-results.xml --reportlog=test-results/security.log
+        python -m pytest -v -m "smoke" \
+          --html=test-results/smoke-report.html \
+          --junitxml=test-results/smoke-results.xml
       env:
-        STANDARD_USER: standard_user
-        STANDARD_PASSWORD: secret_sauce
-        LOCKED_OUT_USER: locked_out_user
-        LOCKED_OUT_PASSWORD: secret_sauce
-        PROBLEM_USER: problem_user
-        PROBLEM_PASSWORD: secret_sauce
-        BASE_URL: https://www.saucedemo.com/v1
-        HEADLESS: true
-        PYTHONPATH: ${GITHUB_WORKSPACE}
+        PYTHONPATH: ${{ github.workspace }}
+        HEADLESS: "true"
+        BROWSER: "chromium"
+        BASE_URL: "https://www.saucedemo.com/v1"
+        STANDARD_USER: "standard_user"
+        STANDARD_PASSWORD: "secret_sauce"
+        LOCKED_OUT_USER: "locked_out_user"
+        LOCKED_OUT_PASSWORD: "secret_sauce"
+        PROBLEM_USER: "problem_user"
+        PROBLEM_PASSWORD: "secret_sauce"
 
-    - name: Upload Test Results
+    - name: Run Regression Tests
+      if: success() || failure()
+      run: |
+        python -m pytest -v -m "regression" \
+          --html=test-results/regression-report.html \
+          --junitxml=test-results/regression-results.xml
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+        HEADLESS: "true"
+        BROWSER: "chromium"
+        BASE_URL: "https://www.saucedemo.com/v1"
+        STANDARD_USER: "standard_user"
+        STANDARD_PASSWORD: "secret_sauce"
+        LOCKED_OUT_USER: "locked_out_user"
+        LOCKED_OUT_PASSWORD: "secret_sauce"
+
+    - name: Run Security Tests
+      if: success() || failure()
+      run: |
+        python -m pytest -v -m "negative" \
+          --html=test-results/security-report.html \
+          --junitxml=test-results/security-results.xml
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+        HEADLESS: "true"
+        BROWSER: "chromium"
+        BASE_URL: "https://www.saucedemo.com/v1"
+        STANDARD_USER: "standard_user"
+        STANDARD_PASSWORD: "secret_sauce"
+        LOCKED_OUT_USER: "locked_out_user"
+        LOCKED_OUT_PASSWORD: "secret_sauce"
+
+    - name: Upload Test Reports
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results
+        name: test-reports
         path: |
-          test-results/*.xml
-          test-results/*.log
-          playwright-report/
-          allure-results/
+          test-results/
           screenshots/
 
-    - name: Publish Test Report
+    - name: Publish Test Results
       if: always()
       uses: dorny/test-reporter@v1
       with:
         name: SauceDemo Tests
-        path: test-results/*.xml
+        path: "test-results/*.xml"
         reporter: java-junit
+        fail-on-error: false
