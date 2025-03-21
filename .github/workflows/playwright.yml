@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     timeout-minutes: 60
@@ -36,7 +41,8 @@ jobs:
       run: |
         python -m pytest -v -m "smoke" \
           --html=test-results/smoke-report.html \
-          --junitxml=test-results/smoke-results.xml
+          --junitxml=test-results/smoke-results.xml \
+          --timeout=30000
       env:
         PYTHONPATH: ${{ github.workspace }}
         HEADLESS: "true"
@@ -48,6 +54,7 @@ jobs:
         LOCKED_OUT_PASSWORD: "secret_sauce"
         PROBLEM_USER: "problem_user"
         PROBLEM_PASSWORD: "secret_sauce"
+        PLAYWRIGHT_TIMEOUT: "30000"
 
     - name: Run Regression Tests
       if: success() || failure()

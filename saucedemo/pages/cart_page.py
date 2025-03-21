@@ -29,10 +29,12 @@ class CartPage(BasePage):
         self.page.wait_for_url(URLs.CHECKOUT_STEP_ONE)
         
     def get_cart_count(self) -> int:
-        """Get the number of items in cart from the badge"""
+        """Get number of items in cart with better error handling"""
+        badge_text = self.get_element_text_safe(".shopping_cart_badge", "0")
         try:
-            return int(self.get_text(self.cart_badge))
-        except:
+            return int(badge_text)
+        except ValueError:
+            logger.warning(f"Invalid cart count value: {badge_text}")
             return 0
             
     def remove_item(self, item_name: str):

@@ -33,9 +33,8 @@ class LoginPage(BasePage):
             self.page.wait_for_url(URLs.INVENTORY)
         
     def get_error_message(self) -> str:
-        """Get error message text"""
-        error_message = self.page.locator(self.error_message).text_content()
-        return error_message
+        """Get error message with better error handling"""
+        return self.get_element_text_safe("[data-test='error']", "No error message found")
         
     def get_current_url(self) -> str:
         """Get the current page URL"""
