@@ -15,7 +15,7 @@ jobs:
   test:
     name: SauceDemo Tests
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
@@ -30,13 +30,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Setup Playwright
-      uses: microsoft/playwright-github-action@v1
-
-    - name: Install Playwright browsers
+    - name: Install system dependencies
       run: |
-        python -m playwright install chromium
-        python -m playwright install-deps
+        sudo apt-get update
+        sudo apt-get install -y \
+          xvfb \
+          libgbm-dev \
+          libxkbcommon-x11-0 \
+          libgtk-3-0 \
+          libnss3 \
+          libxss1 \
+          libasound2
+
+    - name: Install Playwright and browsers
+      run: |
+        python -m playwright install --with-deps chromium
 
     - name: Create test results directory
       run: |
