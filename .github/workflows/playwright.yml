@@ -44,7 +44,15 @@ jobs:
           libxshmfence1 \
           xvfb \
           fonts-noto-color-emoji \
-          ttf-unifont
+          fonts-unifont \
+          libfontconfig1 \
+          libfreetype6 \
+          xfonts-cyrillic \
+          xfonts-scalable \
+          fonts-liberation \
+          fonts-ipafont-gothic \
+          fonts-wqy-zenhei \
+          fonts-tlwg-loma-otf
 
     - name: Install dependencies
       run: |
@@ -53,7 +61,8 @@ jobs:
 
     - name: Install Playwright
       run: |
-        playwright install --with-deps chromium
+        playwright install chromium
+        playwright install-deps chromium
         
     - name: Verify Playwright Installation
       run: |
@@ -66,7 +75,7 @@ jobs:
 
     - name: Run Tests
       run: |
-        python -m pytest -v \
+        xvfb-run --auto-servernum -- python -m pytest -v \
           --html=test-results/report.html \
           --junitxml=test-results/junit.xml
       env:
