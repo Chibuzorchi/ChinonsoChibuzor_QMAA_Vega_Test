@@ -28,8 +28,17 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest-xdist pytest-reportlog pytest-html pytest-timeout
+        
+    - name: Install Playwright Browsers
+      run: |
+        # Install Playwright browsers with system dependencies
         playwright install --with-deps chromium
+        playwright install-deps
+        
+    - name: Verify Playwright Installation
+      run: |
+        python -m playwright install chromium --with-deps
+        python -c "from playwright.sync_api import sync_playwright; sync_playwright().start()"
 
     - name: Create test results directory
       run: |

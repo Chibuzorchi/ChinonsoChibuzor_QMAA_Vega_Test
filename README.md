@@ -1,6 +1,11 @@
-# SauceDemo Test Automation
+# SauceDemo Test Automation Framework
 
-Automated testing suite for SauceDemo (https://www.saucedemo.com/v1/) using Python, Playwright, and Pytest-BDD.
+## Overview
+This project implements an automated testing framework for the SauceDemo web application using Python, Playwright, and pytest.
+
+## Documentation
+- [Manual Test Cases](https://docs.google.com/spreadsheets/d/1KbOtMM8CnG6nQ-7yYZF82PqxSdnqF1Qq1aA-ugvYqVI/edit?usp=sharing)
+- [Test Report](https://docs.google.com/document/d/13086aG_nCpqw4Li9CrZR99xS8R-AuXQBO3P0NSGIuIs/edit?usp=sharing)
 
 ## Features
 
@@ -101,7 +106,6 @@ saucedemo/
 ├── config/         # Configuration and constants
 ├── features/       # BDD feature files
 ├── pages/          # Page Object Models
-├── step_definitions/ # BDD step implementations
 └── tests/          # Unit tests
 ```
 
@@ -115,6 +119,35 @@ saucedemo/
    - Current behavior: No validation on cart contents
    - Expected: Error message or disabled checkout
 
+## Test Reports
+- HTML reports are generated in `test-results/` directory
+- Screenshots of failures are saved in `screenshots/` directory
+- Test logs are available in `logs/` directory
+
+## CI/CD Pipeline
+The project uses GitHub Actions for continuous integration:
+- Automated test execution on push/PR
+- Parallel test execution
+- Test report generation
+- Artifact upload for test results
+
+## Project Components
+1. **Config**: Configuration management and constants
+2. **Features**: BDD feature files
+3. **Pages**: Page Object Models
+4. **Tests**: Test implementation files
+5. **Logs**: Test execution logs
+6. **Reports**: Test execution reports
+
+## Best Practices
+- Page Object Model design pattern
+- BDD approach using Gherkin syntax
+- Environment variable management
+- Logging and reporting
+- Error handling and retries
+- Type hints and documentation
+- Code formatting and linting
+
 ## Contributing
 
 1. Fork the repository
@@ -126,3 +159,6 @@ saucedemo/
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contact
+[Add your contact information here]
