@@ -7,10 +7,14 @@ from saucedemo.config.logger import logger
 settings = get_settings()
 
 def pytest_addoption(parser):
-    parser.addoption("--browser", 
-                    action="store",
-                    default="chromium",
-                    help="Browser to run tests: chromium, firefox, or webkit")
+    """Add command-line options to pytest"""
+    parser.addoption(
+        "--browser-type",
+        action="store",
+        default="chromium",
+        choices=["chromium", "firefox", "webkit"],
+        help="Browser to run tests: chromium, firefox, or webkit"
+    )
 
 @pytest.fixture(scope="session")
 def browser_type_launch_args():
@@ -18,17 +22,20 @@ def browser_type_launch_args():
     return {
         "headless": os.getenv('HEADLESS', 'true').lower() == 'true',
         "args": ['--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage'],
-        "timeout": 30000,
+        "timeout": int(os.getenv('PLAYWRIGHT_TIMEOUT', '30000'))
     }
 
 @pytest.fixture(scope="session")
-def browser(playwright):
+def browser_type(request):
+    """Get the browser type from command line option"""
+    return request.config.getoption("--browser-type")
+
+@pytest.fixture(scope="session")
+def browser(playwright, browser_type, browser_type_launch_args):
     """Create a browser instance"""
     try:
-        browser_name = os.getenv('BROWSER', 'chromium').lower()
-        browser_type = getattr(playwright, browser_name)
-        
-        browser = browser_type.launch(**browser_type_launch_args())
+        browser_instance = getattr(playwright, browser_type)
+        browser = browser_instance.launch(**browser_type_launch_args)
         yield browser
         browser.close()
     except Exception as e:
@@ -36,8 +43,25 @@ def browser(playwright):
         raise
 
 @pytest.fixture
-def page(browser):
+def context(browser):
+    """Create a new browser context"""
+    context = browser.new_context(
+        viewport={'width': 1920, 'height': 1080},
+        ignore_https_errors=True
+    )
+    yield context
+    context.close()
+
+@pytest.fixture
+def page(context):
     """Create a new page for each test"""
-    page = browser.new_page()
+    page = context.new_page()
+    page.set_default_timeout(30000)  # Set default timeout to 30 seconds
     yield page
-    page.close() 
+    page.close()
+
+def pytest_configure(config):
+    """Add custom markers"""
+    config.addinivalue_line("markers", "smoke: mark test as smoke test")
+    config.addinivalue_line("markers", "regression: mark test as regression test")
+    config.addinivalue_line("markers", "negative: mark test as negative test") 

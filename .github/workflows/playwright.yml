@@ -49,6 +49,7 @@ jobs:
       if: success() || failure()
       run: |
         python -m pytest -v -m "smoke" \
+          --browser-type=chromium \
           --html=test-results/smoke-report.html \
           --junitxml=test-results/smoke-results.xml
       env:
