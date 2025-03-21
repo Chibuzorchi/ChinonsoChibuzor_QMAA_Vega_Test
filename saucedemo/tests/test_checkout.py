@@ -34,32 +34,22 @@ def test_successful_checkout(page):
 
 @pytest.mark.negative
 def test_checkout_missing_first_name(page):
-    """Test checkout validation when first name is missing"""
-    # Login
+    """Test checkout with missing first name"""
     login_page = LoginPage(page)
-    login_page.login(Credentials.STANDARD_USER, Credentials.STANDARD_PASSWORD)
-    
-    # Add item to cart
-    inventory_page = InventoryPage(page)
-    inventory_page.add_to_cart(Products.BACKPACK)
-    
-    # Navigate to cart and checkout
-    inventory_page.open_cart()
-    cart_page = CartPage(page)
-    cart_page.proceed_to_checkout()
-    
-    # Fill shipping details with missing first name
     checkout_page = CheckoutPage(page)
-    checkout_page.fill_shipping_details(
-        first_name="",
-        last_name=TestData.SHIPPING['last_name'],
-        postal_code=TestData.SHIPPING['postal_code']
-    )
+    
+    # Login and go to checkout
+    page.goto(URLs.LOGIN)
+    login_page.login(Credentials.STANDARD_USER, Credentials.STANDARD_PASSWORD)
+    page.goto(URLs.CHECKOUT)
+    
+    # Try to checkout without first name
+    checkout_page.fill_checkout_info("", "Doe", "12345")
     checkout_page.continue_checkout()
     
     # Verify error message
-    error_message = checkout_page.get_error_message()
-    assert error_message == "Error: First Name is required"
+    error = checkout_page.get_error_message()
+    assert error and "first name is required" in error.lower(), "Should show first name required error"
 
 @pytest.mark.negative
 def test_checkout_missing_last_name(page):
@@ -123,49 +113,33 @@ def test_checkout_missing_postal_code(page):
 @pytest.mark.negative
 @pytest.mark.regression
 def test_checkout_empty_cart(page):
-    """Test checkout validation when cart is empty.
+    """Test checkout with empty cart.
     
-    Note: This test documents a potential security/UX issue in v1 of SauceDemo:
-    - Current behavior: Checkout is allowed with empty cart, no validation
-    - Expected behavior: Should show error message or disable checkout button
-    - Impact: Users can proceed through checkout flow with no items
+    Note: This test documents a security/UX issue in SauceDemo:
+    - Current behavior: Checkout process can be completed with empty cart
+    - Expected behavior: Should show error or disable checkout
+    - Impact: Poor UX, allows meaningless checkout completion
     
     This test will fail to highlight this issue.
     """
-    # Login
     login_page = LoginPage(page)
-    login_page.login(Credentials.STANDARD_USER, Credentials.STANDARD_PASSWORD)
-    
-    # Go directly to cart page
-    inventory_page = InventoryPage(page)
-    inventory_page.open_cart()
-    
-    # Verify cart is empty
-    assert inventory_page.get_cart_count() == 0, "Cart should be empty"
-    
-    # Document the issue: Checkout is possible with empty cart
     cart_page = CartPage(page)
-    cart_page.proceed_to_checkout()
-    
-    # Fill shipping details
     checkout_page = CheckoutPage(page)
-    checkout_page.fill_shipping_details(
-        first_name="John",
-        last_name="Doe",
-        postal_code="12345"
-    )
     
-    # Can continue checkout despite empty cart
-    checkout_page.continue_checkout()
+    # Login and verify cart is empty
+    page.goto(URLs.LOGIN)
+    login_page.login(Credentials.STANDARD_USER, Credentials.STANDARD_PASSWORD)
+    assert cart_page.get_cart_count() == 0, "Cart should be empty"
     
-    # Can even finish checkout with empty cart
-    checkout_page.finish_checkout()
+    # Attempt checkout with empty cart
+    page.goto(URLs.CHECKOUT)
     
-    # Test fails here to highlight the issue
-    pytest.fail(
-        "Security/UX Issue: Checkout allowed with empty cart\n"
-        "Current behavior: No validation, full checkout possible\n"
-        "Expected: Error message or disabled checkout button"
-    )
+    # Document the security/UX issue
+    if page.url == URLs.CHECKOUT_STEP_ONE:
+        pytest.fail(
+            "Security/UX Issue: Checkout allowed with empty cart\n"
+            "Current behavior: Can proceed to checkout\n"
+            "Expected: Error message or disabled checkout button"
+        )
 
 

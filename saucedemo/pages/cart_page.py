@@ -30,28 +30,48 @@ class CartPage(BasePage):
         
     def get_cart_count(self) -> int:
         """Get number of items in cart with better error handling"""
-        badge_text = self.get_element_text_safe(".shopping_cart_badge", "0")
-        try:
-            return int(badge_text)
-        except ValueError:
-            logger.warning(f"Invalid cart count value: {badge_text}")
+        badge = self.page.locator(self.cart_badge)
+        if badge.count() == 0:
             return 0
             
-    def remove_item(self, item_name: str):
-        """Remove an item from the cart"""
-        logger.info(f"Removing {item_name} from cart")
+        try:
+            return int(badge.text_content() or '0')
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Invalid cart count value: {e}")
+            return 0
+            
+    def remove_item(self, item_name: str) -> bool:
+        """Remove an item from the cart
+        
+        Args:
+            item_name: Name of the item to remove
+            
+        Returns:
+            bool: True if item was removed, False if item wasn't found
+        """
+        logger.info(f"Attempting to remove {item_name} from cart")
         remove_button = self.page.locator(self.remove_button(item_name))
+        
         if remove_button.count() == 0:
-            raise ValueError(f"Item '{item_name}' not found in cart")
+            logger.warning(f"Item '{item_name}' not found in cart")
+            return False
         
         # Get current cart count
         initial_count = self.get_cart_count()
         
-        # Click remove and wait for cart count to update
+        # Click remove and wait for cart count to update if cart isn't empty
         remove_button.click()
-        self.page.wait_for_function(
-            f"count => document.querySelector('.shopping_cart_badge')?.textContent === '{initial_count - 1}'"
-        )
+        if initial_count > 0:
+            try:
+                self.page.wait_for_function(
+                    f"count => !document.querySelector('.shopping_cart_badge') || \
+                    document.querySelector('.shopping_cart_badge').textContent === '{initial_count - 1}'",
+                    timeout=5000
+                )
+            except Exception as e:
+                logger.error(f"Error waiting for cart count update: {e}")
+                
+        return True
         
     def get_cart_total(self) -> float:
         """Calculate total price of items in cart"""

@@ -14,12 +14,19 @@ class CheckoutPage(BasePage):
         self.confirmation_message = "h2.complete-header"
         self.error_message = "h3[data-test='error']"
         
-    def fill_shipping_details(self, first_name: str, last_name: str, postal_code: str):
-        """Fill in shipping information"""
+    def fill_shipping_details(self, first_name: str = '', last_name: str = '', postal_code: str = ''):
+        """Fill in shipping information with validation"""
         logger.info(f"Filling shipping details for {first_name} {last_name}")
-        self.fill(self.first_name_input, first_name)
-        self.fill(self.last_name_input, last_name)
-        self.fill(self.postal_code_input, postal_code)
+        if first_name:
+            self.fill(self.first_name_input, first_name)
+        if last_name:
+            self.fill(self.last_name_input, last_name)
+        if postal_code:
+            self.fill(self.postal_code_input, postal_code)
+            
+    def fill_checkout_info(self, first_name: str = '', last_name: str = '', postal_code: str = ''):
+        """Alias for fill_shipping_details for compatibility"""
+        self.fill_shipping_details(first_name, last_name, postal_code)
         
     def continue_checkout(self):
         """Click continue button"""
