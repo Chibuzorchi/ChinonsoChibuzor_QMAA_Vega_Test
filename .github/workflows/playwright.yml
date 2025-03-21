@@ -1,10 +1,10 @@
-name: Playwright Tests
+name: SauceDemo Test Automation
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   test:
@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.13'
 
     - name: Install dependencies
       run: |
@@ -32,9 +32,44 @@ jobs:
         sudo mv /tmp/allure-2.13.8 /opt/allure
         sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
 
-    - name: Run Playwright tests
+    - name: Run Smoke Tests
       run: |
-        pytest saucedemo/tests --headless --alluredir=./allure-results -v -n auto
+        pytest saucedemo/tests -v -m smoke --headless --alluredir=./allure-results/smoke
+      env:
+        STANDARD_USER: standard_user
+        STANDARD_PASSWORD: secret_sauce
+        LOCKED_OUT_USER: locked_out_user
+        LOCKED_OUT_PASSWORD: secret_sauce
+        PROBLEM_USER: problem_user
+        PROBLEM_PASSWORD: secret_sauce
+        BASE_URL: https://www.saucedemo.com/v1
+        HEADLESS: true
+
+    - name: Run Regression Tests
+      run: |
+        pytest saucedemo/tests -v -m regression --headless --alluredir=./allure-results/regression
+      env:
+        STANDARD_USER: standard_user
+        STANDARD_PASSWORD: secret_sauce
+        LOCKED_OUT_USER: locked_out_user
+        LOCKED_OUT_PASSWORD: secret_sauce
+        PROBLEM_USER: problem_user
+        PROBLEM_PASSWORD: secret_sauce
+        BASE_URL: https://www.saucedemo.com/v1
+        HEADLESS: true
+
+    - name: Run Security Tests
+      run: |
+        pytest saucedemo/tests -v -m negative --headless --alluredir=./allure-results/security
+      env:
+        STANDARD_USER: standard_user
+        STANDARD_PASSWORD: secret_sauce
+        LOCKED_OUT_USER: locked_out_user
+        LOCKED_OUT_PASSWORD: secret_sauce
+        PROBLEM_USER: problem_user
+        PROBLEM_PASSWORD: secret_sauce
+        BASE_URL: https://www.saucedemo.com/v1
+        HEADLESS: true
 
     - name: Generate Allure Report
       if: always()
@@ -49,17 +84,18 @@ jobs:
         path: allure-report
         retention-days: 30
 
-    - name: Upload test results
+    - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v3
       with:
-        name: playwright-results
+        name: test-results
         path: |
           test-results/
           playwright-report/
+          pytest-results.xml
         retention-days: 30
 
-    - name: Upload screenshots of failed tests
+    - name: Upload Failed Test Screenshots
       if: failure()
       uses: actions/upload-artifact@v3
       with:
@@ -71,6 +107,6 @@ jobs:
       if: always()
       uses: dorny/test-reporter@v1
       with:
-        name: Playwright Tests
+        name: SauceDemo Tests
         path: pytest-results.xml
-        reporter: java-junit 
+        reporter: java-junit
