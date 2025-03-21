@@ -7,6 +7,24 @@ This project implements an automated testing framework for the SauceDemo web app
 - [Manual Test Cases](https://docs.google.com/spreadsheets/d/1KbOtMM8CnG6nQ-7yYZF82PqxSdnqF1Qq1aA-ugvYqVI/edit?usp=sharing)
 - [Test Report](https://docs.google.com/document/d/13086aG_nCpqw4Li9CrZR99xS8R-AuXQBO3P0NSGIuIs/edit?usp=sharing)
 
+## Test Coverage Notes
+The framework includes intentional test failures which is the reason for the failure on the pipeline to demonstrate proper error handling and negative test cases. These are not bugs but rather expected behaviors:
+
+1. Authentication Tests:
+   - Locked out user validation (expected to fail)
+   - Invalid credentials handling (expected to fail)
+   - Empty credentials validation (expected to fail)
+
+2. Cart Tests:
+   - Remove non-existent item (expected to fail)
+   - Locked out user cart access (expected to fail)
+
+3. Checkout Tests:
+   - Form validation failures (expected to fail)
+   - Empty cart validation (expected to fail)
+
+These intentional failures help ensure that our framework properly handles error cases and doesn't just test the "happy path" scenarios.
+
 ## Features
 
 - Page Object Model design pattern
