@@ -1,0 +1,61 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+
+# Test results
+logs/
+reports/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Credentials
+credentials.json
+secrets.yaml
+
+# Environment variables
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Test results
+test-results/
+allure-results/
+allure-report/
+playwright-report/
+pytest-results.xml
+screenshots/
+
+# Logs
+*.log
+
+# IDE
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db 
