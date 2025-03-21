@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   test:
+    name: SauceDemo Tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
@@ -31,7 +32,6 @@ jobs:
         
     - name: Install Playwright Browsers
       run: |
-        # Install Playwright browsers with system dependencies
         playwright install --with-deps chromium
         playwright install-deps
         
@@ -45,13 +45,11 @@ jobs:
         mkdir -p test-results
         mkdir -p screenshots
 
-    - name: Run Smoke Tests
-      if: success() || failure()
+    - name: Run Tests
       run: |
-        python -m pytest -v -m "smoke" \
-          --browser-type=chromium \
-          --html=test-results/smoke-report.html \
-          --junitxml=test-results/smoke-results.xml
+        python -m pytest -v \
+          --html=test-results/report.html \
+          --junitxml=test-results/junit.xml
       env:
         PYTHONPATH: ${{ github.workspace }}
         HEADLESS: "true"
@@ -64,38 +62,6 @@ jobs:
         PROBLEM_USER: "problem_user"
         PROBLEM_PASSWORD: "secret_sauce"
         PLAYWRIGHT_TIMEOUT: "30000"
-
-    - name: Run Regression Tests
-      if: success() || failure()
-      run: |
-        python -m pytest -v -m "regression" \
-          --html=test-results/regression-report.html \
-          --junitxml=test-results/regression-results.xml
-      env:
-        PYTHONPATH: ${{ github.workspace }}
-        HEADLESS: "true"
-        BROWSER: "chromium"
-        BASE_URL: "https://www.saucedemo.com/v1"
-        STANDARD_USER: "standard_user"
-        STANDARD_PASSWORD: "secret_sauce"
-        LOCKED_OUT_USER: "locked_out_user"
-        LOCKED_OUT_PASSWORD: "secret_sauce"
-
-    - name: Run Security Tests
-      if: success() || failure()
-      run: |
-        python -m pytest -v -m "negative" \
-          --html=test-results/security-report.html \
-          --junitxml=test-results/security-results.xml
-      env:
-        PYTHONPATH: ${{ github.workspace }}
-        HEADLESS: "true"
-        BROWSER: "chromium"
-        BASE_URL: "https://www.saucedemo.com/v1"
-        STANDARD_USER: "standard_user"
-        STANDARD_PASSWORD: "secret_sauce"
-        LOCKED_OUT_USER: "locked_out_user"
-        LOCKED_OUT_PASSWORD: "secret_sauce"
 
     - name: Upload Test Reports
       if: always()
@@ -111,6 +77,6 @@ jobs:
       uses: dorny/test-reporter@v1
       with:
         name: SauceDemo Tests
-        path: "test-results/*.xml"
+        path: "test-results/junit.xml"
         reporter: java-junit
         fail-on-error: false
